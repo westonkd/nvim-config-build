@@ -1,0 +1,14 @@
+# Lazy.nvim plugin directory (plugins get downloaded at runtime)
+lazy-lock.json
+
+# State and cache directories
+.cache/
+.local/
+
+# Neovim temporary files
+*.swp
+*.swo
+*~
+
+# LSP and debugging
+.luarc.json

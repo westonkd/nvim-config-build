@@ -43,50 +43,7 @@ vim.api.nvim_create_autocmd("FileType", {
 })
 
 -- Fix for nested git repositories (e.g., /app with nested gems/plugins repos)
--- This ensures LazyVim always uses the outermost git repo as the project root
-vim.g.root_spec = { "lsp", { ".git", "lua" }, "cwd" }
+-- Configure LazyVim to detect root starting from outermost, not innermost
+-- This tells LazyVim's root detection to prefer the outer git repo
+vim.g.root_spec = { ".git", "lua", "cwd" }
 
--- Custom function to find the outermost git repository
-local function find_outermost_git_root(path)
-  -- Safety check: if no path and no current file, return nil
-  if not path then
-    local current_file = vim.api.nvim_buf_get_name(0)
-    if current_file == "" then
-      return nil
-    end
-    path = vim.fn.fnamemodify(current_file, ":h")
-  end
-  
-  local git_root = nil
-  local check_path = path
-  local iterations = 0
-  local max_iterations = 50 -- Safety limit to prevent infinite loops
-  
-  -- Walk up the directory tree
-  while check_path ~= "/" and iterations < max_iterations do
-    if vim.fn.isdirectory(check_path .. "/.git") == 1 then
-      git_root = check_path
-    end
-    check_path = vim.fn.fnamemodify(check_path, ":h")
-    iterations = iterations + 1
-  end
-  
-  return git_root
-end
-
--- Override LazyVim's root detection to always use outermost git repo
--- Use BufReadPost instead of BufEnter to avoid excessive firing
-vim.api.nvim_create_autocmd("BufReadPost", {
-  callback = function(ev)
-    -- Skip if buffer has no name or is a special buffer
-    local bufname = vim.api.nvim_buf_get_name(ev.buf)
-    if bufname == "" or vim.bo[ev.buf].buftype ~= "" then
-      return
-    end
-    
-    local outermost_root = find_outermost_git_root()
-    if outermost_root then
-      vim.b[ev.buf].lazyvim_root_dir = outermost_root
-    end
-  end,
-})

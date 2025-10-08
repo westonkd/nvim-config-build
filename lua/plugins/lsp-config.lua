@@ -7,6 +7,9 @@ return {
         solargraph = false, -- Explicitly disable
         
         ruby_lsp = {
+          -- Use bundle exec to ensure ruby-lsp uses the correct bundler context
+          cmd = { "bundle", "exec", "ruby-lsp" },
+          
           -- Custom root_dir function to always use outermost git repo
           root_dir = function(fname)
             local util = require("lspconfig.util")

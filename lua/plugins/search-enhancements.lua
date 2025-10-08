@@ -130,56 +130,86 @@ return {
     keys = {
       -- Override default keymaps to always use outermost git root
       { "<leader>sg", function()
-        require("telescope.builtin").live_grep({
-          cwd = (function()
-            local current_file = vim.fn.expand("%:p")
-            local current_dir = vim.fn.fnamemodify(current_file, ":h")
-            local git_root = nil
-            local check_path = current_dir
-            while check_path ~= "/" do
-              if vim.fn.isdirectory(check_path .. "/.git") == 1 then
-                git_root = check_path
-              end
-              check_path = vim.fn.fnamemodify(check_path, ":h")
+        local function find_git_root()
+          local current_file = vim.api.nvim_buf_get_name(0)
+          if current_file == "" then
+            return vim.fn.getcwd()
+          end
+          local current_dir = vim.fn.fnamemodify(current_file, ":h")
+          local git_root = nil
+          local check_path = current_dir
+          local max_iter = 50
+          local iter = 0
+          
+          while check_path ~= "/" and iter < max_iter do
+            if vim.fn.isdirectory(check_path .. "/.git") == 1 then
+              git_root = check_path
             end
-            return git_root or current_dir
-          end)()
+            check_path = vim.fn.fnamemodify(check_path, ":h")
+            iter = iter + 1
+          end
+          
+          return git_root or current_dir
+        end
+        
+        require("telescope.builtin").live_grep({
+          cwd = find_git_root()
         })
       end, desc = "Live Grep (All Files)" },
       
       { "<leader>sw", function()
-        require("telescope.builtin").grep_string({
-          cwd = (function()
-            local current_file = vim.fn.expand("%:p")
-            local current_dir = vim.fn.fnamemodify(current_file, ":h")
-            local git_root = nil
-            local check_path = current_dir
-            while check_path ~= "/" do
-              if vim.fn.isdirectory(check_path .. "/.git") == 1 then
-                git_root = check_path
-              end
-              check_path = vim.fn.fnamemodify(check_path, ":h")
+        local function find_git_root()
+          local current_file = vim.api.nvim_buf_get_name(0)
+          if current_file == "" then
+            return vim.fn.getcwd()
+          end
+          local current_dir = vim.fn.fnamemodify(current_file, ":h")
+          local git_root = nil
+          local check_path = current_dir
+          local max_iter = 50
+          local iter = 0
+          
+          while check_path ~= "/" and iter < max_iter do
+            if vim.fn.isdirectory(check_path .. "/.git") == 1 then
+              git_root = check_path
             end
-            return git_root or current_dir
-          end)()
+            check_path = vim.fn.fnamemodify(check_path, ":h")
+            iter = iter + 1
+          end
+          
+          return git_root or current_dir
+        end
+        
+        require("telescope.builtin").grep_string({
+          cwd = find_git_root()
         })
       end, desc = "Search Word Under Cursor" },
       
       { "<leader>sf", function()
-        require("telescope.builtin").find_files({
-          cwd = (function()
-            local current_file = vim.fn.expand("%:p")
-            local current_dir = vim.fn.fnamemodify(current_file, ":h")
-            local git_root = nil
-            local check_path = current_dir
-            while check_path ~= "/" do
-              if vim.fn.isdirectory(check_path .. "/.git") == 1 then
-                git_root = check_path
-              end
-              check_path = vim.fn.fnamemodify(check_path, ":h")
+        local function find_git_root()
+          local current_file = vim.api.nvim_buf_get_name(0)
+          if current_file == "" then
+            return vim.fn.getcwd()
+          end
+          local current_dir = vim.fn.fnamemodify(current_file, ":h")
+          local git_root = nil
+          local check_path = current_dir
+          local max_iter = 50
+          local iter = 0
+          
+          while check_path ~= "/" and iter < max_iter do
+            if vim.fn.isdirectory(check_path .. "/.git") == 1 then
+              git_root = check_path
             end
-            return git_root or current_dir
-          end)()
+            check_path = vim.fn.fnamemodify(check_path, ":h")
+            iter = iter + 1
+          end
+          
+          return git_root or current_dir
+        end
+        
+        require("telescope.builtin").find_files({
+          cwd = find_git_root()
         })
       end, desc = "Find Files" },
       

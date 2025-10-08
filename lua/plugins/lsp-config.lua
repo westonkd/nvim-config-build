@@ -1,4 +1,18 @@
 return {
+  -- Configure Mason to not manage ruby_lsp at all
+  {
+    "williamboman/mason-lspconfig.nvim",
+    opts = function(_, opts)
+      opts.ensure_installed = opts.ensure_installed or {}
+      -- Make sure ruby_lsp is NOT in the auto-install list
+      opts.ensure_installed = vim.tbl_filter(function(server)
+        return server ~= "ruby_lsp"
+      end, opts.ensure_installed)
+      
+      return opts
+    end,
+  },
+  
   {
     "neovim/nvim-lspconfig",
     opts = function(_, opts)
@@ -76,5 +90,23 @@ return {
       
       return opts
     end,
+    setup = {
+      ruby_lsp = function(_, opts)
+        -- Manually setup ruby_lsp without Mason
+        local lspconfig = require("lspconfig")
+        
+        -- Merge our custom config
+        local config = vim.tbl_deep_extend("force", {
+          cmd = { "bundle", "exec", "ruby-lsp" },
+          filetypes = { "ruby", "eruby" },
+          root_dir = opts.root_dir,
+          init_options = opts.init_options,
+          settings = opts.settings or {},
+        }, opts)
+        
+        lspconfig.ruby_lsp.setup(config)
+        return true -- Prevent LazyVim from setting it up again
+      end,
+    },
   },
 }

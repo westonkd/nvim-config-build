@@ -41,3 +41,34 @@ vim.api.nvim_create_autocmd("FileType", {
     vim.opt_local.expandtab = true
   end,
 })
+
+-- Fix for nested git repositories (e.g., /app with nested gems/plugins repos)
+-- This ensures LazyVim always uses the outermost git repo as the project root
+vim.g.root_spec = { "lsp", { ".git", "lua" }, "cwd" }
+
+-- Custom function to find the outermost git repository
+local function find_outermost_git_root(path)
+  local current_path = path or vim.fn.expand("%:p:h")
+  local git_root = nil
+  
+  -- Walk up the directory tree
+  local check_path = current_path
+  while check_path ~= "/" do
+    if vim.fn.isdirectory(check_path .. "/.git") == 1 then
+      git_root = check_path
+    end
+    check_path = vim.fn.fnamemodify(check_path, ":h")
+  end
+  
+  return git_root
+end
+
+-- Override LazyVim's root detection to always use outermost git repo
+vim.api.nvim_create_autocmd({ "BufEnter", "BufWinEnter" }, {
+  callback = function()
+    local outermost_root = find_outermost_git_root()
+    if outermost_root then
+      vim.b.lazyvim_root_dir = outermost_root
+    end
+  end,
+})

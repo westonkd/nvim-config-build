@@ -11,24 +11,6 @@ return {
       local telescope = require("telescope")
       local lga_actions = require("telescope-live-grep-args.actions")
       
-      -- Helper function to get outermost git root
-      local function get_outermost_git_root()
-        local current_file = vim.fn.expand("%:p")
-        local current_dir = vim.fn.fnamemodify(current_file, ":h")
-        local git_root = nil
-        
-        -- Walk up the directory tree to find all git roots
-        local check_path = current_dir
-        while check_path ~= "/" do
-          if vim.fn.isdirectory(check_path .. "/.git") == 1 then
-            git_root = check_path
-          end
-          check_path = vim.fn.fnamemodify(check_path, ":h")
-        end
-        
-        return git_root or current_dir
-      end
-      
       telescope.setup({
         defaults = {
           -- Better file preview
@@ -71,13 +53,17 @@ return {
       
       -- Custom search functions for Ruby workflow
       local builtin = require("telescope.builtin")
-      local themes = require("telescope.themes")
+      
+      -- Helper to get root directory (uses LazyVim's detection)
+      local function get_root()
+        return vim.b.lazyvim_root_dir or vim.fn.getcwd()
+      end
       
       -- Search in Ruby files (excluding specs) - always from git root
       vim.keymap.set("n", "<leader>srb", function()
         builtin.live_grep({
           prompt_title = "Search Ruby Files (no specs)",
-          cwd = get_outermost_git_root(),
+          cwd = get_root(),
           glob_pattern = "*.rb",
           additional_args = { "--glob", "!*spec.rb", "--glob", "!*_spec.rb" }
         })
@@ -87,7 +73,7 @@ return {
       vim.keymap.set("n", "<leader>srs", function()
         builtin.live_grep({
           prompt_title = "Search Spec Files",
-          cwd = get_outermost_git_root(),
+          cwd = get_root(),
           glob_pattern = { "*spec.rb", "*_spec.rb" }
         })
       end, { desc = "Search spec files" })
@@ -96,7 +82,7 @@ return {
       vim.keymap.set("n", "<leader>sra", function()
         require("telescope").extensions.live_grep_args.live_grep_args({
           prompt_title = "Advanced Search with Filters",
-          cwd = get_outermost_git_root(),
+          cwd = get_root(),
         })
       end, { desc = "Advanced search with file patterns" })
       
@@ -112,7 +98,7 @@ return {
       vim.keymap.set("n", "<leader>swrb", function()
         builtin.grep_string({
           prompt_title = "Search Word in Ruby Files",
-          cwd = get_outermost_git_root(),
+          cwd = get_root(),
           glob_pattern = "*.rb",
           additional_args = { "--glob", "!*spec.rb", "--glob", "!*_spec.rb" }
         })
@@ -122,95 +108,27 @@ return {
       vim.keymap.set("n", "<leader>swrs", function()
         builtin.grep_string({
           prompt_title = "Search Word in Spec Files",
-          cwd = get_outermost_git_root(),
+          cwd = get_root(),
           glob_pattern = { "*spec.rb", "*_spec.rb" }
         })
       end, { desc = "Search current word in spec files" })
     end,
     keys = {
-      -- Override default keymaps to always use outermost git root
+      -- Override default keymaps to use LazyVim's root detection
       { "<leader>sg", function()
-        local function find_git_root()
-          local current_file = vim.api.nvim_buf_get_name(0)
-          if current_file == "" then
-            return vim.fn.getcwd()
-          end
-          local current_dir = vim.fn.fnamemodify(current_file, ":h")
-          local git_root = nil
-          local check_path = current_dir
-          local max_iter = 50
-          local iter = 0
-          
-          while check_path ~= "/" and iter < max_iter do
-            if vim.fn.isdirectory(check_path .. "/.git") == 1 then
-              git_root = check_path
-            end
-            check_path = vim.fn.fnamemodify(check_path, ":h")
-            iter = iter + 1
-          end
-          
-          return git_root or current_dir
-        end
-        
-        require("telescope.builtin").live_grep({
-          cwd = find_git_root()
-        })
+        -- Use LazyVim's root_dir if available, otherwise current working directory
+        local root = vim.b.lazyvim_root_dir or vim.fn.getcwd()
+        require("telescope.builtin").live_grep({ cwd = root })
       end, desc = "Live Grep (All Files)" },
       
       { "<leader>sw", function()
-        local function find_git_root()
-          local current_file = vim.api.nvim_buf_get_name(0)
-          if current_file == "" then
-            return vim.fn.getcwd()
-          end
-          local current_dir = vim.fn.fnamemodify(current_file, ":h")
-          local git_root = nil
-          local check_path = current_dir
-          local max_iter = 50
-          local iter = 0
-          
-          while check_path ~= "/" and iter < max_iter do
-            if vim.fn.isdirectory(check_path .. "/.git") == 1 then
-              git_root = check_path
-            end
-            check_path = vim.fn.fnamemodify(check_path, ":h")
-            iter = iter + 1
-          end
-          
-          return git_root or current_dir
-        end
-        
-        require("telescope.builtin").grep_string({
-          cwd = find_git_root()
-        })
+        local root = vim.b.lazyvim_root_dir or vim.fn.getcwd()
+        require("telescope.builtin").grep_string({ cwd = root })
       end, desc = "Search Word Under Cursor" },
       
       { "<leader>sf", function()
-        local function find_git_root()
-          local current_file = vim.api.nvim_buf_get_name(0)
-          if current_file == "" then
-            return vim.fn.getcwd()
-          end
-          local current_dir = vim.fn.fnamemodify(current_file, ":h")
-          local git_root = nil
-          local check_path = current_dir
-          local max_iter = 50
-          local iter = 0
-          
-          while check_path ~= "/" and iter < max_iter do
-            if vim.fn.isdirectory(check_path .. "/.git") == 1 then
-              git_root = check_path
-            end
-            check_path = vim.fn.fnamemodify(check_path, ":h")
-            iter = iter + 1
-          end
-          
-          return git_root or current_dir
-        end
-        
-        require("telescope.builtin").find_files({
-          cwd = find_git_root()
-        })
+        local root = vim.b.lazyvim_root_dir or vim.fn.getcwd()
+        require("telescope.builtin").find_files({ cwd = root })
       end, desc = "Find Files" },
       
       { "<leader>sr", "<cmd>Telescope resume<cr>", desc = "Resume Last Search" },

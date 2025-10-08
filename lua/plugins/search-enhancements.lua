@@ -34,8 +34,7 @@ return {
           -- Better file preview
           file_previewer = require("telescope.previewers").vim_buffer_cat.new,
           grep_previewer = require("telescope.previewers").vim_buffer_vimgrep.new,
-          -- Always search from outermost git root
-          cwd = get_outermost_git_root(),
+          -- Note: cwd is set dynamically in each search function to use outermost git root
           -- Exclude common directories that shouldn't be searched
           file_ignore_patterns = {
             "node_modules/.*",

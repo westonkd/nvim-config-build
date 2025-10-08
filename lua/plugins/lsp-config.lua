@@ -10,8 +10,10 @@ return {
       
       -- Configure ruby_lsp with our custom settings
       opts.servers.ruby_lsp = vim.tbl_deep_extend("force", opts.servers.ruby_lsp or {}, {
-        -- Use bundle exec to ensure ruby-lsp uses the correct bundler context
-        cmd = { "bundle", "exec", "ruby-lsp" },
+        -- Try bundle exec first, will fall back to direct ruby-lsp if not in bundle
+        cmd = vim.fn.filereadable(vim.fn.getcwd() .. "/Gemfile.lock") == 1 
+          and { "bundle", "exec", "ruby-lsp" }
+          or { "ruby-lsp" },
         
         -- Custom root_dir function to always use outermost git repo
         root_dir = function(fname)

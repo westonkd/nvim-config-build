@@ -27,19 +27,21 @@ return {
       { "<leader>tg", "<cmd>TestVisit<cr>", desc = "Visit Test File" },
     },
     config = function()
-      -- Use neovim terminal for test output
       vim.g["test#strategy"] = "neovim"
       vim.g["test#neovim#term_position"] = "belowright"
+      vim.g["test#echo_command"] = 1
       
-      -- RSpec specific settings
+      -- SET THE PROJECT ROOT to always be the main app directory
+      vim.g["test#project_root"] = vim.fn.expand("~/src/app")  -- Adjust path to your app root
+      
       vim.g["test#ruby#rspec#options"] = {
         nearest = "--format progress",
         file = "--format progress", 
         suite = "--format progress"
       }
       
-      -- Use bundle exec when Gemfile is present
       vim.g["test#ruby#bundle_exec"] = 1
+      vim.g["test#ruby#runner"] = "rspec"
     end,
   },
 }
